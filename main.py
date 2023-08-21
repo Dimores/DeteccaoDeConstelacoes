@@ -3,6 +3,7 @@ import numpy as np
 import os
 import glob
 from matplotlib import pyplot as plt
+import mahotas as mh
 
 def showSingleImage(img, title, size):
     fig, axis = plt.subplots(figsize = size)
@@ -87,25 +88,23 @@ def identificaEstrelas(thresh_images):
     star_images = []
 
     for thresh_img in thresh_images:
-        # Find contours in the thresholded image
         contours, _ = cv2.findContours(thresh_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Create a copy of the original image to draw the detected stars
-        star_img = thresh_img.copy()
+        star_img = cv2.cvtColor(thresh_img, cv2.COLOR_GRAY2BGR)
 
-        for contour in contours:
-            area = cv2.contourArea(contour)
+        for cnt in contours:
+            area = cv2.contourArea(cnt)
             if area > 50:  # Minimum area to consider as a potential star
-                # Calculate the circularity of the contour
-                perimeter = cv2.arcLength(contour, True)
-                circularity = (4 * np.pi * area) / (perimeter * perimeter)
-
-                if circularity > 0.5:  # Adjust this threshold as needed
-                    cv2.drawContours(star_img, [contour], -1, (0, 255, 0), -1)  # Draw a green filled contour
+                M = cv2.moments(cnt)
+                if M["m00"] != 0:
+                    cX = int(M["m10"] / M["m00"])
+                    cY = int(M["m01"] / M["m00"])
+                    cv2.circle(star_img, (cX, cY), 10, (0, 0, 255), -1)  # Draw red circle
 
         star_images.append(star_img)
 
     return star_images
+
 
 
 def getImagensDaPasta():
@@ -145,12 +144,17 @@ def getImagensDaPasta():
 def main():
     imagensASeremCarregadas = getImagensDaPasta()
 
-    vetorDeImagens = carregaVetorImagensCinza(imagensASeremCarregadas)
-    vetorDeImagens = aplicaThreshold(vetorDeImagens)
+    vetorDeImagensOriginal = carregaVetorImagensCinza(imagensASeremCarregadas)
+    primeiraImagemExemplo = vetorDeImagensOriginal[0]
+    vetorDeImagens = aplicaThreshold(vetorDeImagensOriginal)
     vetorDeImagensIdentificadas = identificaEstrelas(vetorDeImagens)
+    segundaImagemExemplo = vetorDeImagensIdentificadas[0]
     vetorDeTitulos = ["andromeda", "aquila", "auriga", "canisMajor", "capricornus", "cetus", "columba", "gemini", "grus", "leo", "orion", "pavo", "pegasus", "phoenix", "pisces", "piscisAustrinus", "puppis", "ursaMajor", "ursaMinor", "vela"]
 
-    showMultipleImages(vetorDeImagensIdentificadas, vetorDeTitulos, (20,16), 5, 4)
+    vetorExemplo = [primeiraImagemExemplo, segundaImagemExemplo]
+    vetorExemploTitulo = ["Andromeda", "Contornos"]
+    showMultipleImages(vetorExemplo, vetorExemploTitulo, (16,12), 2, 1)
+    #showSingleImage(vetorDeImagensIdentificadas[0], "Andromeda", (20,16))
 
 if __name__ == "__main__":
     main()
