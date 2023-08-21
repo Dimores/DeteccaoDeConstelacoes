@@ -68,7 +68,7 @@ def carregaVetorImagensCinza(listaDeImagensDaPasta):
     imagens = len(listaDeImagensDaPasta)
     listaImagensCarregadas = []
     for imgPath in listaDeImagensDaPasta:
-        print("Carregando as imagens em tom de cinza")
+        #print("Carregando as imagens em tom de cinza")
         img = cv2.imread(imgPath, 0)  # Carrega a imagem usando o caminho
         listaImagensCarregadas.append(img)
         print(str(imgPath))
@@ -79,9 +79,33 @@ def aplicaThreshold(listaDeImagens):
     listaImagensLimiarizadas = []
     for imgPath in listaDeImagens:
         ret, thresh_img = cv2.threshold(imgPath, 180, 255, cv2.THRESH_BINARY)
-        print("Aplicando Threshold")
+        #print("Aplicando Threshold")
         listaImagensLimiarizadas.append(thresh_img)
     return listaImagensLimiarizadas
+
+def identificaEstrelas(thresh_images):
+    star_images = []
+
+    for thresh_img in thresh_images:
+        # Find contours in the thresholded image
+        contours, _ = cv2.findContours(thresh_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Create a copy of the original image to draw the detected stars
+        star_img = thresh_img.copy()
+
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area > 50:  # Minimum area to consider as a potential star
+                # Calculate the circularity of the contour
+                perimeter = cv2.arcLength(contour, True)
+                circularity = (4 * np.pi * area) / (perimeter * perimeter)
+
+                if circularity > 0.5:  # Adjust this threshold as needed
+                    cv2.drawContours(star_img, [contour], -1, (0, 255, 0), -1)  # Draw a green filled contour
+
+        star_images.append(star_img)
+
+    return star_images
 
 
 def getImagensDaPasta():
@@ -122,10 +146,11 @@ def main():
     imagensASeremCarregadas = getImagensDaPasta()
 
     vetorDeImagens = carregaVetorImagensCinza(imagensASeremCarregadas)
-    #vetorDeImagens = aplicaThreshold(vetorDeImagens)
+    vetorDeImagens = aplicaThreshold(vetorDeImagens)
+    vetorDeImagensIdentificadas = identificaEstrelas(vetorDeImagens)
     vetorDeTitulos = ["andromeda", "aquila", "auriga", "canisMajor", "capricornus", "cetus", "columba", "gemini", "grus", "leo", "orion", "pavo", "pegasus", "phoenix", "pisces", "piscisAustrinus", "puppis", "ursaMajor", "ursaMinor", "vela"]
 
-    showMultipleImages(vetorDeImagens, vetorDeTitulos, (20,16), 5, 4)
+    showMultipleImages(vetorDeImagensIdentificadas, vetorDeTitulos, (20,16), 5, 4)
 
 if __name__ == "__main__":
     main()
