@@ -94,12 +94,12 @@ def identificaEstrelas(thresh_images):
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            if area > 50:  # Minimum area to consider as a potential star
+            if area > 0.05:  # Minimum area to consider as a potential star
                 M = cv2.moments(cnt)
                 if M["m00"] != 0:
                     cX = int(M["m10"] / M["m00"])
                     cY = int(M["m01"] / M["m00"])
-                    cv2.circle(star_img, (cX, cY), 10, (0, 0, 255), -1)  # Draw red circle
+                    cv2.circle(star_img, (cX, cY), 10, (255,0,0), -1)  # Draw red circle
 
         star_images.append(star_img)
 
