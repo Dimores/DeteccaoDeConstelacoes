@@ -64,10 +64,30 @@ def carregaVetorImagens(listaDeImagensDaPasta):
         print("teste" + str(imgPath))
     return listaImagensCarregadas
 
+def carregaVetorImagensCinza(listaDeImagensDaPasta):
+    imagens = len(listaDeImagensDaPasta)
+    listaImagensCarregadas = []
+    for imgPath in listaDeImagensDaPasta:
+        print("Carregando as imagens em tom de cinza")
+        img = cv2.imread(imgPath, 0)  # Carrega a imagem usando o caminho
+        listaImagensCarregadas.append(img)
+        print(str(imgPath))
+    return listaImagensCarregadas
+
+
+def aplicaThreshold(listaDeImagens):
+    listaImagensLimiarizadas = []
+    for imgPath in listaDeImagens:
+        ret, thresh_img = cv2.threshold(imgPath, 180, 255, cv2.THRESH_BINARY)
+        print("Aplicando Threshold")
+        listaImagensLimiarizadas.append(thresh_img)
+    return listaImagensLimiarizadas
+
+
 def getImagensDaPasta():
     folder = 'imgs/*'
     listaDeImagensDaPasta = glob.glob(folder)
-    print("Tamanho da lista: " + str(len(listaDeImagensDaPasta)))
+    print("Quantidade de imagens = " + str(len(listaDeImagensDaPasta)))
 
     #Criando as variaveis para as imagens usando a lista do glob
     andromeda = listaDeImagensDaPasta[0]
@@ -101,7 +121,8 @@ def getImagensDaPasta():
 def main():
     imagensASeremCarregadas = getImagensDaPasta()
 
-    vetorDeImagens = carregaVetorImagens(imagensASeremCarregadas)
+    vetorDeImagens = carregaVetorImagensCinza(imagensASeremCarregadas)
+    #vetorDeImagens = aplicaThreshold(vetorDeImagens)
     vetorDeTitulos = ["andromeda", "aquila", "auriga", "canisMajor", "capricornus", "cetus", "columba", "gemini", "grus", "leo", "orion", "pavo", "pegasus", "phoenix", "pisces", "piscisAustrinus", "puppis", "ursaMajor", "ursaMinor", "vela"]
 
     showMultipleImages(vetorDeImagens, vetorDeTitulos, (20,16), 5, 4)
